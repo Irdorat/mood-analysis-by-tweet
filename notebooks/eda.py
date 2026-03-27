@@ -60,7 +60,7 @@ def _(mo):
 
 @app.cell
 def _(pd):
-    data=pd.read_csv('../data/raw/training_data.csv', delimiter = ',', quotechar='"', names = ['y','id message','date','flag','user','text'],encoding = 'latin1')
+    data=pd.read_csv('data/raw/training_data.csv', delimiter = ',', quotechar='"', names = ['y','id message','date','flag','user','text'],encoding = 'latin1')
     data.head()
     return (data,)
 
@@ -143,10 +143,9 @@ def _(data, deepcopy, pd, re):
         text = re.sub(r'\s+', ' ', text).strip()
         return text
     clean_data['text']=clean_data['text'].apply(clean_text)
-    clean_data.drop(['ids','flag','user','hour','date'], axis=1, inplace=True)
+    clean_data.drop(['id message','flag','user','hour','date'], axis=1, inplace=True)
 
     clean_data.head()
-
     return (clean_data,)
 
 
@@ -169,12 +168,7 @@ def _(mo):
 
 @app.cell
 def _(clean_data):
-    clean_data.to_csv('../data/processed/clean_data.csv', index=False, encoding='utf-8')
-    return
-
-
-@app.cell
-def _():
+    clean_data.to_csv('data/processed/clean_data.csv', index=False, encoding='utf-8')
     return
 
 
