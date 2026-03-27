@@ -22,3 +22,7 @@ __pycache__/
 *.tmp
 
 data/
+
+#marimo
+__marimo__/
+__init__.py
