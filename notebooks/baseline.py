@@ -66,7 +66,7 @@ def _(
     train_test_split,
     y,
 ):
-    X_train, X_test, y_train, y_test = train_test_split(
+    X_train, X_test, y_train_logreg, y_test_logreg = train_test_split(
         X,y,
         test_size=0.2,
         random_state=17,
@@ -89,8 +89,7 @@ def _(
             ('cat', cat_trans, ['day','time'])
         ]
     )
-
-    return X_test, X_train, preprocessor, y_test, y_train
+    return X_test, X_train, preprocessor, y_test_logreg, y_train_logreg
 
 
 @app.cell(hide_code=True)
@@ -102,7 +101,14 @@ def _(mo):
 
 
 @app.cell
-def _(LogisticRegression, Pipeline, X_test, X_train, preprocessor, y_train):
+def _(
+    LogisticRegression,
+    Pipeline,
+    X_test,
+    X_train,
+    preprocessor,
+    y_train_logreg,
+):
     model=Pipeline([
         ('preprocessor', preprocessor),
         ('classifier', LogisticRegression(
@@ -111,10 +117,10 @@ def _(LogisticRegression, Pipeline, X_test, X_train, preprocessor, y_train):
             random_state=17
         ))
     ])
-    model.fit(X_train,y_train)
-    y_train_prediction=model.predict(X_train)
-    y_test_prediction=model.predict(X_test)
-    return y_test_prediction, y_train_prediction
+    model.fit(X_train,y_train_logreg)
+    y_train_prediction_logreg=model.predict(X_train)
+    y_test_prediction_logreg=model.predict(X_test)
+    return y_test_prediction_logreg, y_train_prediction_logreg
 
 
 @app.cell
@@ -122,15 +128,15 @@ def _(
     accuracy_score,
     f1_score,
     pd,
-    y_test,
-    y_test_prediction,
-    y_train,
-    y_train_prediction,
+    y_test_logreg,
+    y_test_prediction_logreg,
+    y_train_logreg,
+    y_train_prediction_logreg,
 ):
     pd.DataFrame(
         {"Какая выборка?": ["Выборка train","Выборка test"],
-         "Accuracy метрика": [accuracy_score(y_train, y_train_prediction),accuracy_score(y_test,y_test_prediction)],
-         "F1-мера": [f1_score(y_train, y_train_prediction),f1_score(y_test,y_test_prediction)]
+         "Accuracy метрика": [accuracy_score(y_train_logreg, y_train_prediction_logreg),accuracy_score(y_test_logreg,y_test_prediction_logreg)],
+         "F1-мера": [f1_score(y_train_logreg, y_train_prediction_logreg),f1_score(y_test_logreg,y_test_prediction_logreg)]
             }
     )
     return
