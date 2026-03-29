@@ -29,7 +29,9 @@ def _():
     import numpy as np
     from catboost import CatBoostClassifier, Pool
     from sklearn.model_selection import train_test_split
+    from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics import accuracy_score, f1_score
+    from scipy.sparse import hstack
     import matplotlib.pyplot as plt
     import seaborn as sns
 
@@ -63,6 +65,9 @@ def _(pd):
 
 @app.cell
 def _(CatBoostClassifier, Pool, X, train_test_split, y):
+    X['text_len'] = X['text'].str.len()
+    X['word_count'] = X['text'].str.split().str.len()
+
     X_train, X_test, y_train, y_test = train_test_split(
         X,y,
         test_size=0.2,
@@ -70,8 +75,9 @@ def _(CatBoostClassifier, Pool, X, train_test_split, y):
         stratify=y
     )
 
-    X_train['text'] = X_train['text'].str[:100]
-    X_test['text'] = X_test['text'].str[:100]
+    X_train['text'] = X_train['text'].str[:150]
+    X_test['text'] = X_test['text'].str[:150]
+
 
     train_pool=Pool(
         X_train,
@@ -86,40 +92,24 @@ def _(CatBoostClassifier, Pool, X, train_test_split, y):
         text_features=['text']
     )
 
-    text_processing = {
-        "tokenizers": [{
-            "tokenizer_id": "Space",
-            "separator_type": "ByDelimiter",
-            "delimiter": " "
-        }],
-        "dictionaries": [{
-            "dictionary_id": "Word",
-            "max_dictionary_size": 50000
-        }],
-        "feature_calcers": ["BoW", "NaiveBayes"]
-    }
-
     model = CatBoostClassifier(
-        iterations=2000,              # больше итераций — у тебя много данных
-        learning_rate=0.05,           # медленное обучение = лучше качество
-        depth=6,                      # для текста лучше 6–10
-        l2_leaf_reg=5,                # регуляризация
+        iterations=2000,
+        learning_rate=0.05,
+        depth=7,
+        l2_leaf_reg=7,
+    
         loss_function='Logloss',
-        eval_metric='F1',             # 👈 важно для твоей задачи
-        text_processing=text_processing,
-
+        eval_metric='F1',
+    
         task_type="GPU",
         devices="0",
-
-        early_stopping_rounds=100,
-
-        border_count=64,             # GPU-оптимально
-
-        auto_class_weights='Balanced', 
+    
+        auto_class_weights='Balanced',
+    
+        early_stopping_rounds=150,
         bagging_temperature=1,
-        random_strength=1,
-
-        verbose=200
+        random_strength=2,
+        verbose=100
     )
 
     model.fit(train_pool, eval_set=test_pool)
@@ -137,6 +127,47 @@ def _(X_test, X_train, accuracy_score, f1_score, model, pd, y_test, y_train):
             }
     )
     return
+
+
+@app.cell
+def _(CatBoostClassifier, Pool, X, train_test_split, y):
+    #Базовый catboost
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y,
+        test_size=0.2,
+        random_state=17,
+        stratify=y
+    )
+
+    train_pool = Pool(
+        X_train,
+        y_train,
+        cat_features=['day', 'time'],
+        text_features=['text']
+    )
+
+    test_pool = Pool(
+        X_test,
+        y_test,
+        cat_features=['day', 'time'],
+        text_features=['text']
+    )
+
+    model = CatBoostClassifier(
+        iterations=500,
+        learning_rate=0.1,
+        depth=6,
+
+        loss_function='Logloss',
+
+        task_type="GPU",
+        devices="0",
+
+        verbose=100
+    )
+
+    model.fit(train_pool, eval_set=test_pool)
+    return X_test, X_train, model, y_test, y_train
 
 
 if __name__ == "__main__":
