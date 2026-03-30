@@ -7,24 +7,6 @@ app = marimo.App(width="medium")
 @app.cell
 def _():
     import marimo as mo
-
-    return (mo,)
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    #Улучшение качества модели
-    Для анализа полярности фрагментов текста CatBoost имеет ряд преимуществ:
-    - может работать с категориальными признаками, в том числе и с текстом, из коробки
-    - симметричные деревья — меньше переобучаются на шумных текстовых данных
-    - скорость инференса — важна, если будете применять модель к новым твитам
-    """)
-    return
-
-
-@app.cell
-def _():
     import pandas as pd
     import numpy as np
     from catboost import CatBoostClassifier, Pool
@@ -51,43 +33,54 @@ def _(pd):
     data = data.dropna(subset=['text'])
     X=data.drop(columns=['y'])
     y=data['y']
+    X['text_len'] = X['text'].str.len()
+    X['word_count'] = X['text'].str.split().str.len()
     return X, y
 
 
 @app.cell
 def _(CatBoostClassifier, Pool, X, train_test_split, y):
-    #Базовый catboost
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y,
+        X,y,
         test_size=0.2,
         random_state=17,
         stratify=y
     )
 
-    train_pool = Pool(
+    X_train['text'] = X_train['text'].str[:150]
+    X_test['text'] = X_test['text'].str[:150]
+
+
+    train_pool=Pool(
         X_train,
         y_train,
-        cat_features=['day', 'time'],
+        cat_features=['day','time'],
         text_features=['text']
     )
-
-    test_pool = Pool(
+    test_pool=Pool(
         X_test,
         y_test,
-        cat_features=['day', 'time'],
+        cat_features=['day','time'],
         text_features=['text']
     )
 
     model = CatBoostClassifier(
-        iterations=500,
-        learning_rate=0.1,
-        depth=6,
+        iterations=2000,
+        learning_rate=0.05,
+        depth=7,
+        l2_leaf_reg=7,
 
         loss_function='Logloss',
+        eval_metric='F1',
 
         task_type="GPU",
         devices="0",
 
+        auto_class_weights='Balanced',
+
+        early_stopping_rounds=150,
+        bagging_temperature=1,
+        random_strength=2,
         verbose=100
     )
 
