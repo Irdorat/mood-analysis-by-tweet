@@ -1,79 +1,116 @@
 ## Emotion Classification in Tweets
 
+Python | Pandas | Scikit-learn | CatBoost 
+
 Проект посвящён классификации эмоциональной окраски твитов.
 Цель - построить модель, которая на основе текста и вспомогательных признаков (день недели, длина текста, время) предсказывает позитив/негатив (1,0) твита.
 
-## Данные
+<h1> Tech Stack <a href="#-tech-stack--"><img src="https://raw.githubusercontent.com/HighAmbition211/HighAmbition211/auxiliary/others/skill.gif" width="32"></a> </h1>
 
-Использован очищенный датасет (финал 01_eda) твитов с меткой эмоциональной окраски (`y`):
-- `text` — текст твита
-- `day` — день недели
-- `hour_sin`, `hour_cos` — синус и косинус часа публикации
-- `text_length` — длина твита
+### Languages
+<table>
+  <tr>
+    <td align="center" width="90">
+      <a href="https://www.python.org/" target="_blank">
+        <img alt="Python" width="45" height="45" src="https://raw.githubusercontent.com/HighAmbition211/HighAmbition211/auxiliary/languages/python.svg" />
+      </a>
+      <br><h4>Python</h4>
+    </td>
+  </tr>
+</table>
 
-![Очищенные данные](../reports/clean_data.png)
+### Frameworks & Libraries
+<table>
+  <tr>
+    <td align="center" width="90">
+      <a href="https://pandas.pydata.org/" target="_blank">
+        <img alt="Pandas" width="45" height="45" src="https://pandas.pydata.org/static/img/pandas_mark.svg" />
+      </a>
+      <br><h4>Pandas</h4>
+    </td>
+    <td align="center" width="90">
+      <a href="https://scikit-learn.org/" target="_blank">
+        <img alt="Scikit-learn" width="45" height="45" src="https://scikit-learn.org/stable/_static/scikit-learn-logo-small.png" />
+      </a>
+      <br><h4>Scikit-learn</h4>
+    </td>
+    <td align="center" width="90">
+      <a href="https://catboost.ai/" target="_blank">
+        <img alt="CatBoost" width="45" height="45" src="http://storage.mds.yandex.net/get-devtools-opensource/250854/catboost-logo.png" />
+      </a>
+      <br><h4>CatBoost</h4>
+    </td>
+  </tr>
+</table>
 
-Данные очищены: убраны пустые строки, нормализованы числовые признаки.
+## Описание проекта
+Проект включает следующие шаги:
 
-## Предобработка
+1. **Сбор и предобработка данных**
+- Тексты твитов очищаются, обрезаются до 150 символов, нормализуются
+- Категориальные данные (день недели и время суток) кодируется через OHE
+- Текстовые данные обрабатываются через TF-IDF и CatBoost (text features)
 
-- Текст: TF-IDF (ngram 1-2), max_features=20_000, stop_words='english'
-- Категориальные признаки: OneHotEncoder
-- Числовые признаки: StandardScaler
-- Все шаги объединены в `Pipeline` с `ColumnTransformer`
+2. **Обучение моделей**
+- Задача - бинарная классификация (положительная или отрицательная полярность сообщения)
+- Baseline - логистическая регрессия (использует TF-IDF и OHE)
+- CatBoost - бустинг модель, хорошо работающая с категориальными и текстовыми признаками
+- Ансамбль (catboost и логистическая регрессия). **Показала плохо и требует доработки**
 
-## EDA - [Exploratory Data Analysis](notebooks/01_eda.ipynb)
-
-- Проверка на пропуски и пустые строки
-- Распределение классов: относительно равномерное
-![Распределение метки](../reports/распределение_метки.png)
-- Частотные слова показывают общую эмоциональную окраску
-
-
-## Модели
-
-1. Logistic Regression
-   - Accuracy (test): 0.789
-   - F1-score (test): 0.793
-   - Log loss: 0.452
-   - ROC-AUC: 0,87
-![Значение метрик](/reports/значение_метрик.png)
-![ROC-AUC](/reports/ROCAUC.png)
-
-## Анализ ошибок
-
-- Рассмотрены твиты, которые модель классифицировала неправильно
-- Большинство ошибок — сарказм, эмоциональная неоднозначность
-
-![Ошибка](/reports/ошибка.png)
-
-## Demo
-
-Есть интерактивный ноутбук [DEMO](notebooks/03_demo.ipynb):
-- Вводишь твит
-![user tweet](/reports/demo_text.png)
-- Автоматически определяется день и время
-- Модель выдаёт класс + вероятность
-![Result](/reports/demo_result.png)
+3. **Оценка моделей**
+- Метрики: accuracy, F1, Precission, Recall
+- Визуализация: ROC-кривая, Матрица неточностей, Feature Importance
 
 ## Структура проекта
+```
+|src
+|-models
+||-catboost.pkl #обученная catboost модель
+||-ensemble.pkl #обученная ensamble модель
+||-logreg.pkl #обученная logistic regression модель
+|-notebooks
+||-ansamble_logreg_catboost #скрипт обучения ансамбля
+||-baseline #скрипт обучения baseline модели
+||-catboost_model #скрипт обучения catboost
+||-catboost_tuningv2_model #скрипт настройки гиперпараметров модели catboost
+||-demo_use #скрипт демо использования пользователем
+||-eda #очистка и предобработка набора данных
+|-requirements.txt
+```
+## Начало работы
+1) Клонировать репозиторий
+git clone https://github.com/Irdorat/mood-analysis-by-tweet
 
-├── data/
-│   ├── external/archive.zip
-|   |── processed/clean_data.csv
-│   └── raw/trainig_data.csv
-├── models/
-│   └── logreg_pipeline.pkl
-├── notebooks/
-│   ├── 01_eda.ipynb
-│   ├── 02_modeling.ipynb
-│   └── 03_demo.ipynb
-├── requirements.txt
-└── README.md
+cd mood-analysis-by-tweet
 
-## Выводы
+2) Создать виртуальное окружение (из файла req*.txt)
 
-- Pipeline позволяет корректно обрабатывать текст и признаки
-- Logistic Regression показывает стабильный результат
-- Модель может быть использована для интерактивного демо
-- Возможные улучшения: добавление более сложных NLP-признаков (word embeddings, BERT)
+python -m venv venv
+
+venv\Scripts\activate
+
+3) Установить зависимости
+
+pip install -r requirements.txt
+
+4) Использовать обученные модели в папке models
+
+## Результаты
+
+|Метрика|Logistic Regression|Catboost|Ensemble Catboost|
+|:-----:|:-----------------:|:------:|:---------------:|
+|Accuracy|0.788302|0.823605|0.821882|
+|F1-мера |0.792749|0.823060|0.822726|
+|Precission|0.776|0.825|0.819|
+|Recall|0.810|0.821|0.827|
+
+### Слова имеющие наибольший вес в модели:
+
+|Позитивные слова: вес|Негативные слова: вес|
+|:-----:|:----:|
+|thanks: 4.4|sad: -11.1|
+|isnt bad: 4.5|sadly: -6.6|
+|thank: 4.5|poor: -6.5|
+|dont feel bad: 4.7|bummed: -6.5|
+|wish luck: 5.6|miss: -6.2|
+---
