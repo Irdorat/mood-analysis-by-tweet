@@ -28,13 +28,12 @@ def _():
     import seaborn as sns
     import matplotlib.pyplot as plt
     from sklearn.model_selection import train_test_split
-    from sklearn.metrics import roc_curve, auc, confusion_matrix, ConfusionMatrixDisplay, precision_score, recall_score
     from sklearn.preprocessing import OneHotEncoder, StandardScaler
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.compose import ColumnTransformer
     from sklearn.pipeline import Pipeline
     from sklearn.linear_model import LogisticRegression
-    from sklearn.metrics import accuracy_score, f1_score, log_loss
+    from sklearn.metrics import accuracy_score, f1_score, log_loss, roc_curve, auc, confusion_matrix, ConfusionMatrixDisplay, precision_score, recall_score
 
     return (
         ColumnTransformer,
