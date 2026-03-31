@@ -17,6 +17,8 @@ def _():
     import matplotlib.pyplot as plt
     import seaborn as sns
     import re
+    import pickle
+    import os
 
     return (
         CatBoostClassifier,
@@ -27,6 +29,7 @@ def _():
         f1_score,
         mo,
         pd,
+        pickle,
         plt,
         precision_score,
         recall_score,
@@ -46,6 +49,7 @@ def _(pd):
     X['unique_word_ratio'] = (
         X['text'].str.split().apply(lambda x: len(set(x)) / (len(x) + 1))
     )
+    X.head()
     return X, y
 
 
@@ -185,6 +189,26 @@ def _(mo):
 
     ##Следующий шаг - повысить качество модели используя ансамбль
     """)
+    return
+
+
+@app.cell
+def _(model, pickle):
+    package = {
+        # Модели
+        'model': model,    
+        # Признаки
+        'cat_features': ['day', 'time'],
+        'text_features': ['text'],
+        'text_truncate': 150,
+
+        # Дополнительные признаки, которые добавлялись
+        'engineered_features': ['text_len', 'word_count', 'unique_word_ratio']
+    }
+
+    # Сохраняем одним файлом
+    with open('models/catboost.pkl', 'wb') as f:
+        pickle.dump(package, f)
     return
 
 
