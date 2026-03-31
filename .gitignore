@@ -27,3 +27,4 @@ data/
 __marimo__/
 __init__.py
 catboost_info/
+image/
