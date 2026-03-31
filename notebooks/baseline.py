@@ -34,6 +34,8 @@ def _():
     from sklearn.pipeline import Pipeline
     from sklearn.linear_model import LogisticRegression
     from sklearn.metrics import accuracy_score, f1_score, log_loss, roc_curve, auc, confusion_matrix, ConfusionMatrixDisplay, precision_score, recall_score
+    import pickle
+    import os
 
     return (
         ColumnTransformer,
@@ -46,6 +48,7 @@ def _():
         confusion_matrix,
         f1_score,
         pd,
+        pickle,
         plt,
         precision_score,
         re,
@@ -239,6 +242,23 @@ def _(mo):
 
     ##Следующий шаг - улучшение модели с использованием методов бустинга
     """)
+    return
+
+
+@app.cell
+def _(model, pickle):
+    package = {
+        # Модели
+        'model': model,    
+        # Признаки
+        'cat_features': ['day', 'time'],
+        'text_features': ['text'],
+        'text_truncate': 150,
+    }
+
+    # Сохраняем одним файлом
+    with open('models/logreg.pkl', 'wb') as f:
+        pickle.dump(package, f)
     return
 
 
