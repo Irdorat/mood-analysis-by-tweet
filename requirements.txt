@@ -13,11 +13,6 @@ seaborn==0.13.2
 PyYAML==6.0.3
 joblib==1.5.3
 
-torch==2.5.1
-torchvision==0.20.1
-torchaudio==2.5.1
-
-
 matplotlib
 seaborn
 plotly
