@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.22.0"
 app = marimo.App(width="medium")
 
 
@@ -34,6 +34,7 @@ def _():
     from scipy.sparse import hstack
     import matplotlib.pyplot as plt
     import seaborn as sns
+    import os
     import re
 
     return (
@@ -105,7 +106,9 @@ def _(CatBoostClassifier, Pool, X, train_test_split, y):
 @app.cell
 def _(X_test, X_train, accuracy_score, f1_score, model, pd, y_test, y_train):
     y_train_prediction_cb=model.predict(X_train)
+    y_train_prediction_prob_cb=model.predict_proba(X_train)[:,1]
     y_test_prediction_cb=model.predict(X_test)
+    y_test_prediction_prob_cb=model.predict_proba(X_test)[:,1]
     df=pd.DataFrame(
         {"Какая выборка?": ["Train","Test"],
          "Accuracy метрика": [accuracy_score(y_train, y_train_prediction_cb),accuracy_score(y_test,y_test_prediction_cb)],
@@ -113,13 +116,17 @@ def _(X_test, X_train, accuracy_score, f1_score, model, pd, y_test, y_train):
             }
     )
     print(df)
-    return y_test_prediction_cb, y_train_prediction_cb
+    return (
+        y_test_prediction_cb,
+        y_test_prediction_prob_cb,
+        y_train_prediction_cb,
+    )
 
 
 @app.cell
-def _(auc, plt, roc_curve, y_test, y_test_prediction_cb):
+def _(auc, plt, roc_curve, y_test, y_test_prediction_prob_cb):
     #ROC-AUC
-    fpr_cb, tpr_cb, _ = roc_curve(y_test, y_test_prediction_cb) #false positive rate (доля ложноположительных срабатываний), true positive rate (чувствительность recall)
+    fpr_cb, tpr_cb, _ = roc_curve(y_test, y_test_prediction_prob_cb) #false positive rate (доля ложноположительных срабатываний), true positive rate (чувствительность recall)
     roc_auc_cb = auc(fpr_cb, tpr_cb) #AUC = 1 — идеальная классификация, 0.5 — случайная
 
     plt.plot(fpr_cb, tpr_cb, label=f'Catboost (AUC = {roc_auc_cb:.3f})')

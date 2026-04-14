@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.22.0"
 app = marimo.App(width="medium")
 
 
@@ -47,6 +47,7 @@ def _():
         auc,
         confusion_matrix,
         f1_score,
+        os,
         pd,
         pickle,
         plt,
@@ -137,7 +138,9 @@ def _(
     y_train_logreg,
 ):
     y_train_prediction_logreg=model.predict(X_train)
+    y_train_prediction_proba_logreg=model.predict_proba(X_train)[:, 1]
     y_test_prediction_logreg=model.predict(X_test)
+    y_test_prediction_proba_logreg=model.predict_proba(X_test)[:, 1]
     df=pd.DataFrame(
         {"Какая выборка?": ["Train","Test"],
          "Accuracy метрика": [accuracy_score(y_train_logreg, y_train_prediction_logreg),accuracy_score(y_test_logreg,y_test_prediction_logreg)],
@@ -145,13 +148,17 @@ def _(
             }
     )
     print(df)
-    return y_test_prediction_logreg, y_train_prediction_logreg
+    return (
+        y_test_prediction_logreg,
+        y_test_prediction_proba_logreg,
+        y_train_prediction_logreg,
+    )
 
 
 @app.cell
-def _(auc, plt, roc_curve, y_test_logreg, y_test_prediction_logreg):
+def _(auc, plt, roc_curve, y_test_logreg, y_test_prediction_proba_logreg):
     #ROC-AUC
-    fpr_logreg, tpr_logreg, _ = roc_curve(y_test_logreg, y_test_prediction_logreg) #false positive rate (доля ложноположительных срабатываний), true positive rate (чувствительность recall)
+    fpr_logreg, tpr_logreg, _ = roc_curve(y_test_logreg, y_test_prediction_proba_logreg) #false positive rate (доля ложноположительных срабатываний), true positive rate (чувствительность recall)
     roc_auc_logreg = auc(fpr_logreg, tpr_logreg) #AUC = 1 — идеальная классификация, 0.5 — случайная
 
     plt.plot(fpr_logreg, tpr_logreg, label=f'Logistic Regression (AUC = {roc_auc_logreg:.3f})')
@@ -246,7 +253,8 @@ def _(mo):
 
 
 @app.cell
-def _(model, pickle):
+def _(model, os, pickle):
+    os.makedirs('models', exist_ok=True)
     package = {
         # Модели
         'model': model,    
